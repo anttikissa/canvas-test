@@ -5,9 +5,17 @@ var w = window.innerWidth - 22;
 var h = window.innerHeight - 22;
 
 config = {
-	fontSize: 16,
+	fontSize: 13,
+	// I guess we could sniff this.
+	characterWidth: 8,
+	fontWeight: '400',
 	fontFamily: 'Source Code Pro',
-	lineHeight: 20,
+	fontColor: '#000',
+	lineHeight: 16,
+	// These affect how text looks because antialiasing/hinting
+	fontXOffset: 0.5,
+	// Apparently this isn't subpixel accurate, too bad.
+	fontYOffset: 0,
 };
 
 function init() {
@@ -21,8 +29,12 @@ function clear() {
 	ctx.clearRect(0, 0, w, h);
 }
 
-function setup() {
-	ctx.font = String(config.fontSize) + 'px "' + config.fontFamily + '"';
+function setupFont() {
+	var weight = config.fontWeight + ' ';
+	var size = String(config.fontSize) + 'px ';
+	var family = '"' + config.fontFamily + '"';
+	ctx.font = weight + size + family;
+	ctx.fillStyle = config.fontColor;
 }
 
 function drawFrame() {
@@ -42,14 +54,13 @@ function drawBoxesPerf() {
 		//var color1 = Math.floor(x % 256).toString(16);
 		//var color2 = Math.floor(y % 256).toString(16);
 		//ctx.fillStyle = '#' + color1 + '00' + color2;
-		ctx.fillStyle = '#cccccc';
 		ctx.fillRect(x, y, 10, 10);
 	}
 }
 
 function drawTextAt(text, textX, textY) {
-	var x = textX * config.fontSize;
-	var y = (textY + 1) * config.fontSize;
+	var x = textX * config.characterWidth + config.fontXOffset;
+	var y = (textY + 1) * config.lineHeight + config.fontYOffset;
 	ctx.fillText(text, x, y);
 }
 
@@ -73,14 +84,48 @@ function drawTextPerf() {
 var perfTest = false;
 var perfTestText = false;
 
+var lines = [
+	"abcdefghijklmnopqrstuvwxyz",
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+	"0123456789!@#$%^&*(){}[]-=_+|\~`,./<>?",
+	"sex prof gives back no quiz with mild joy.",
+	"SEX PROF GIVES BACK NO QUIZ WITH MILD JOY.",
+	"The romantic growth and imaginative shaping of chivalric love having been ",
+	"he romantic growth and imaginative shaping of chivalric love having been ",
+	"e romantic growth and imaginative shaping of chivalric love having been ",
+	" romantic growth and imaginative shaping of chivalric love having been ",
+	"romantic growth and imaginative shaping of chivalric love having been ",
+	"omantic growth and imaginative shaping of chivalric love having been ",
+	"followed in the fortunes of its great exemplars, Tristan, Iseult, Lancelot,",
+	"Guinevere, Parzival, a different illustration of mediaeval passion may be had",
+	"by turning from these creations of literature to an actual woman, whose love ",
+	"for a living man was thought out as keenly and as tragically felt as any ",
+	"heart-break of imagined lovers, and was impressed with as entire a ",
+	"self-surrender as ever ravished the soul of nun panting with love of the ",
+	"God-man."
+];
+
+function drawEditor() {
+	setupFont();
+	var x = 0;
+	for (var line = 0; line < lines.length; line++) {
+		if (line > 5)
+			x++;
+		if (line > 10)
+			x = 0;
+		drawTextAt(lines[line], x, line);
+	}
+}
+
 function draw() {
-	setup();
 	clear();
 	drawFrame();
 	if (perfTest)
 		drawBoxes();
 	if (perfTestText)
 		drawTextPerf();
+
+	drawEditor();
 
 	frame++;
 	requestAnimationFrame(draw);
