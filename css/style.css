@@ -1,0 +1,12 @@
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+canvas {
+	border: 1px solid #888;
+	position: relative;
+	left: 10px;
+	top: 10px;
+}
