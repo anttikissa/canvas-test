@@ -4,9 +4,15 @@
 	padding: 0;
 }
 
+.outer {
+	overflow: auto;
+//	margin: 10px;
+}
+
+.inner {
+	background: url('../img/dimension.png');
+}
+
 canvas {
-	border: 1px solid #888;
 	position: relative;
-	left: 10px;
-	top: 10px;
 }

@@ -1,8 +1,18 @@
 var canvas = document.querySelector('canvas');
+var outer = document.querySelector('.outer');
+var inner = document.querySelector('.inner');
 var ctx = canvas.getContext('2d');
 
-var w = window.innerWidth - 22;
-var h = window.innerHeight - 22;
+var w;
+var h;
+var canvasW;
+var canvasH;
+var canvasPosX = 0;
+var canvasPosY = 0;
+var textW;
+var textH;
+var scrollX = 0;
+var scrollY = 0;
 
 config = {
 	fontSize: 13,
@@ -18,15 +28,50 @@ config = {
 	fontYOffset: 0,
 };
 
-function init() {
-	canvas.width = w;
-	canvas.height = h;
+function repositionCanvas() {
+	canvas.style.top = scrollY + 'px';
+	canvas.style.left = scrollX + 'px';
+	canvasPosX = scrollX;
+	canvasPosY = scrollY;
 }
+
+function init() {
+	onResize();
+	outer.addEventListener('scroll', function(e) {
+		scrollY = e.target.scrollTop;
+		scrollX = e.target.scrollLeft;
+		repositionCanvas();
+	});
+}
+
+function onResize() {
+	w = window.innerWidth;
+	h = window.innerHeight;
+	textW = Math.floor(w / config.characterWidth);
+	textH = Math.floor(w / config.lineHeight);
+	canvasW = w;
+	canvasH = h;
+	innerW = 2000;
+	innerH = 20000;
+	outer.style.width = w + 'px';
+	outer.style.height = h + 'px';
+	inner.style.width = innerW + 'px';
+	inner.style.height = innerH + 'px';
+	canvas.width = canvasW;
+	canvas.height = canvasH;
+	// This must be at least scroll bar size (15 in Chrome),
+	// otherwise moving the canvas will increase the size of
+	// the inner div so much that we can scroll indefinitely.
+	canvas.width = w - 15;
+	canvas.height = h - 15;
+}
+
+window.onresize = onResize;
 
 var frame = 0;
 
 function clear() {
-	ctx.clearRect(0, 0, w, h);
+	ctx.clearRect(0, 0, canvasW, canvasH);
 }
 
 function setupFont() {
@@ -39,7 +84,8 @@ function setupFont() {
 
 function drawFrame() {
 	ctx.fillStyle = '#ff8888';
-	ctx.fillRect(0, 0, (frame % 60) / 60 * w, 1);
+	var y = scrollY;
+	ctx.fillRect(0 - canvasPosX, y - canvasPosY, (frame % 60) / 60 * w, 1);
 }
 
 function drawBoxesPerf() {
@@ -61,7 +107,8 @@ function drawBoxesPerf() {
 function drawTextAt(text, textX, textY) {
 	var x = textX * config.characterWidth + config.fontXOffset;
 	var y = (textY + 1) * config.lineHeight + config.fontYOffset;
-	ctx.fillText(text, x, y);
+
+	ctx.fillText(text, x - canvasPosX, y - canvasPosY);
 }
 
 
@@ -102,8 +149,35 @@ var lines = [
 	"for a living man was thought out as keenly and as tragically felt as any ",
 	"heart-break of imagined lovers, and was impressed with as entire a ",
 	"self-surrender as ever ravished the soul of nun panting with love of the ",
-	"God-man."
+	"God-man.",
+	"",
+	"function drawTextPerf() {",
+	"	var content = \"HELLOWORLDHELLOWORLDHELLOWORLDHELLOWORLD\";" +
+	"",
+	"	// 1000 takes about 58% of cpu with 1 characters",
+	"	// 1000 takes about 72% of cpu with 10 characters",
+	"	// 1000 takes about 98% of cpu with 40 characters",
+	"	for (var i = 0; i < 1000; i++) {",
+	"		var x = Math.random() * 24;",
+	"		var y = Math.random() * 29;",
+	"",
+	"		var color = '#888';",
+	"		ctx.fillStyle = color;",
+	"		drawTextAt(content, x, y);",
+	"	}",
+	"}	"
 ];
+
+for (var i = 99; i >= 0; i--) {
+	lines.push(i + " bottles of beer on the wall, " + i + " bottles of beer.  Take one down and pass it around, " + (i-1) + " bottles of beer.");
+}
+
+function drawScrollPos() {
+	var text = 'scroll ' + scrollX + ' ' + scrollY;
+	var line = 1 + scrollY / config.lineHeight;
+	var column = textW - text.length - 4 + scrollX / config.characterWidth;
+	drawTextAt(text, column, line);
+}
 
 function drawEditor() {
 	setupFont();
@@ -115,6 +189,8 @@ function drawEditor() {
 			x = 0;
 		drawTextAt(lines[line], x, line);
 	}
+
+	drawScrollPos();
 }
 
 function draw() {
