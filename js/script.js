@@ -14,13 +14,21 @@ var textH;
 var scrollX = 0;
 var scrollY = 0;
 
+var ajax = function(url, success) {
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function() { success(xhr.responseText); };
+	xhr.open('get', url, true);
+	xhr.send();
+	return xhr;
+};
+
 config = {
 	fontSize: 13,
 	// I guess we could sniff this.
 	characterWidth: 8,
 	fontWeight: '400',
 	fontFamily: 'Source Code Pro',
-	fontColor: '#000',
+	fontColor: '#282828',
 	lineHeight: 16,
 	// These affect how text looks because antialiasing/hinting
 	fontXOffset: 0.5,
@@ -41,6 +49,12 @@ function init() {
 		scrollY = e.target.scrollTop;
 		scrollX = e.target.scrollLeft;
 		repositionCanvas();
+	});
+
+	ajax('words.txt', function(result) {
+		var words = result.trim().split('\n');
+//		console.log(words);
+//		lines = lines.concat(words);
 	});
 }
 
@@ -71,7 +85,10 @@ window.onresize = onResize;
 var frame = 0;
 
 function clear() {
-	ctx.clearRect(0, 0, canvasW, canvasH);
+	ctx.fillStyle = '#fcfcfc';
+	ctx.stroke =
+	ctx.fillRect(0, 0, canvasW, canvasH);
+//	ctx.clearRect(0, 0, canvasW, canvasH);
 }
 
 function setupFont() {
